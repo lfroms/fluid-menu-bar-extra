@@ -11,8 +11,8 @@
   <a href="https://github.com/lfroms/fluid-menu-bar-extra/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/lfroms/fluid-menu-bar-extra"></a>
   <img alt="GitHub contributors" src="https://img.shields.io/github/contributors/lfroms/fluid-menu-bar-extra">
   <a href="https://github.com/lfroms/fluid-menu-bar-extra/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/lfroms/fluid-menu-bar-extra"></a>
-  <a href="https://github.com/lfroms/fluid-menu-bar-extra"><img alt="GitHub license" src="https://img.shields.io/github/license/lfroms/mobile-device-kit"></a>
-  <img alt="Contributions welcome" src="https://img.shields.io/badge/contributions-welcome-orange">
+  <a href="https://github.com/lfroms/fluid-menu-bar-extra"><img alt="GitHub license" src="https://img.shields.io/github/license/lfroms/fluid-menu-bar-extra"></a>
+  <a href="https://swiftpackageindex.com/lfroms/fluid-menu-bar-extra"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fswiftpackageindex.com%2Fapi%2Fpackages%2Flfroms%2Ffluid-menu-bar-extra%2Fbadge%3Ftype%3Dplatforms"></a>
 </p>
 
 <p align="center">
