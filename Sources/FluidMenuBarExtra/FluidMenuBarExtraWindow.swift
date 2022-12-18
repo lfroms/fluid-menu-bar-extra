@@ -1,5 +1,5 @@
 //
-//  MenuBarExtraWindow.swift
+//  FluidMenuBarExtraWindow.swift
 //  FluidMenuBarExtra
 //
 //  Created by Lukas Romsicki on 2022-12-16.
@@ -11,9 +11,9 @@ import SwiftUI
 
 /// A custom window configured to behave as closely to an `NSMenu` as possible.
 ///
-/// `MenuBarExtraWindow` listens for changes to the size of its content and automatically
-/// adjusts its frame to match.
-final class MenuBarExtraWindow<Content: View>: NSPanel {
+/// `FluidMenuBarExtraWindow` listens for changes to the size of its content and
+/// automatically adjusts its frame to match.
+final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
     private let content: () -> Content
 
     private lazy var visualEffectView: NSVisualEffectView = {
@@ -84,7 +84,6 @@ final class MenuBarExtraWindow<Content: View>: NSPanel {
         ])
     }
 
-    @MainActor
     private func contentSizeDidUpdate(to size: CGSize) {
         var nextFrame = frame
         let previousContentSize = contentRect(forFrameRect: frame).size
@@ -100,6 +99,8 @@ final class MenuBarExtraWindow<Content: View>: NSPanel {
             return
         }
 
-        setFrame(nextFrame, display: true, animate: true)
+        DispatchQueue.main.async { [weak self] in
+            self?.setFrame(nextFrame, display: true, animate: true)
+        }
     }
 }

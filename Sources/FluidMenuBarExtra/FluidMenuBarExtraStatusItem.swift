@@ -1,5 +1,5 @@
 //
-//  MenuBarExtraCoordinator.swift
+//  FluidMenuBarExtraStatusItem.swift
 //  FluidMenuBarExtra
 //
 //  Created by Lukas Romsicki on 2022-12-17.
@@ -9,9 +9,10 @@
 import AppKit
 import SwiftUI
 
-/// Facilitates communication between a status bar item and the window it opens.
-final class MenuBarExtraCoordinator: NSObject, ObservableObject, NSWindowDelegate {
-    private unowned let window: NSWindow
+/// An individual element displayed in the system menu bar that displays a window
+/// when triggered.
+final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
+    private let window: NSWindow
     private let statusItem: NSStatusItem
 
     private var eventMonitor: EventMonitor?
@@ -108,28 +109,31 @@ final class MenuBarExtraCoordinator: NSObject, ObservableObject, NSWindowDelegat
                 // Offset by window border size to align with highlighted button.
                 targetRect.origin.x -= Metrics.windowBorderSize
             }
+        } else {
+            // If there's no screen, assume default positioning.
+            targetRect.origin.x -= Metrics.windowBorderSize
         }
 
         window.setFrameTopLeftPoint(targetRect.origin)
     }
 }
 
-extension MenuBarExtraCoordinator {
-    public convenience init(title: String, window: NSWindow) {
+extension FluidMenuBarExtraStatusItem {
+    convenience init(title: String, window: NSWindow) {
         self.init(window: window)
 
         statusItem.button?.title = title
         statusItem.button?.setAccessibilityTitle(title)
     }
 
-    public convenience init(title: String, image: String, window: NSWindow) {
+    convenience init(title: String, image: String, window: NSWindow) {
         self.init(window: window)
 
         statusItem.button?.setAccessibilityTitle(title)
         statusItem.button?.image = NSImage(named: image)
     }
 
-    public convenience init(title: String, systemImage: String, window: NSWindow) {
+    convenience init(title: String, systemImage: String, window: NSWindow) {
         self.init(window: window)
 
         statusItem.button?.setAccessibilityTitle(title)
