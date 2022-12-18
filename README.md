@@ -85,4 +85,4 @@ All contributions are welcome. If you have a need for this kind of package, feel
 
 ## License
 
-FluidMenuBarExtra is released under the [GPL-3.0 License](LICENSE) unless otherwise noted.
+FluidMenuBarExtra is released under the [MIT License](LICENSE) unless otherwise noted.
