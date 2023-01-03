@@ -44,7 +44,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarExtra: FluidMenuBarExtra?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        self.menuBarExtra = FluidMenuBarExtra(title: "My Menu", systemImage: "cloud.fill"} {
+        self.menuBarExtra = FluidMenuBarExtra(title: "My Menu", systemImage: "cloud.fill") {
             Text("My SwiftUI View")
         }
     }
