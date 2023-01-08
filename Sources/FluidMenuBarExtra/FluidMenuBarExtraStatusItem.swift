@@ -15,7 +15,8 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     private let window: NSWindow
     private let statusItem: NSStatusItem
 
-    private var eventMonitor: EventMonitor?
+    private var localEventMonitor: EventMonitor?
+    private var globalEventMonitor: EventMonitor?
 
     private init(window: NSWindow) {
         self.window = window
@@ -25,7 +26,7 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
 
         super.init()
 
-        eventMonitor = EventMonitor(mask: [.leftMouseDown]) { [weak self] event in
+        localEventMonitor = LocalEventMonitor(mask: [.leftMouseDown]) { [weak self] event in
             if let button = self?.statusItem.button, event.window == button.window, !event.modifierFlags.contains(.command) {
                 self?.didPressStatusBarButton(button)
 
@@ -36,8 +37,16 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
             return event
         }
 
+        globalEventMonitor = GlobalEventMonitor(mask: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            if let window = self?.window, window.isKeyWindow {
+                // Resign key window status if a external non-activating event is triggered,
+                // such as other system status bar menus.
+                window.resignKey()
+            }
+        }
+
         window.delegate = self
-        eventMonitor?.start()
+        localEventMonitor?.start()
     }
 
     deinit {
@@ -58,10 +67,12 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     }
 
     func windowDidBecomeKey(_ notification: Notification) {
+        globalEventMonitor?.start()
         setButtonHighlighted(to: true)
     }
 
     func windowDidResignKey(_ notification: Notification) {
+        globalEventMonitor?.stop()
         dismissWindow()
     }
 

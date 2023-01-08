@@ -8,17 +8,12 @@
 
 import AppKit
 
-final class EventMonitor {
-    typealias Handler = (NSEvent) -> NSEvent?
+class EventMonitor {
+    fileprivate let mask: NSEvent.EventTypeMask
+    fileprivate var monitor: Any?
 
-    private let mask: NSEvent.EventTypeMask
-    private let handler: Handler
-
-    private var monitor: Any?
-
-    init(mask: NSEvent.EventTypeMask, handler: @escaping Handler) {
+    fileprivate init(mask: NSEvent.EventTypeMask) {
         self.mask = mask
-        self.handler = handler
     }
 
     deinit {
@@ -26,7 +21,7 @@ final class EventMonitor {
     }
 
     func start() {
-        monitor = NSEvent.addLocalMonitorForEvents(matching: mask, handler: handler)
+        fatalError("start must be implemented by a subclass of EventMonitor")
     }
 
     func stop() {
@@ -34,5 +29,35 @@ final class EventMonitor {
             NSEvent.removeMonitor(monitor!)
             monitor = nil
         }
+    }
+}
+
+final class LocalEventMonitor: EventMonitor {
+    typealias Handler = (NSEvent) -> NSEvent?
+
+    private let handler: Handler
+
+    init(mask: NSEvent.EventTypeMask, handler: @escaping Handler) {
+        self.handler = handler
+        super.init(mask: mask)
+    }
+
+    override func start() {
+        monitor = NSEvent.addLocalMonitorForEvents(matching: mask, handler: handler)
+    }
+}
+
+final class GlobalEventMonitor: EventMonitor {
+    typealias Handler = (NSEvent) -> Void
+
+    private let handler: Handler
+
+    init(mask: NSEvent.EventTypeMask, handler: @escaping Handler) {
+        self.handler = handler
+        super.init(mask: mask)
+    }
+
+    override func start() {
+        monitor = NSEvent.addGlobalMonitorForEvents(matching: mask, handler: handler)
     }
 }
