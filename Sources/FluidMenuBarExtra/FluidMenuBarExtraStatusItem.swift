@@ -18,7 +18,7 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     private var localEventMonitor: EventMonitor?
     private var globalEventMonitor: EventMonitor?
 
-    private init(window: NSWindow) {
+    private init(window: NSWindow, menu: NSMenu? = nil) {
         self.window = window
 
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -26,9 +26,15 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
 
         super.init()
 
-        localEventMonitor = LocalEventMonitor(mask: [.leftMouseDown]) { [weak self] event in
-            if let button = self?.statusItem.button, event.window == button.window, !event.modifierFlags.contains(.command) {
-                self?.didPressStatusBarButton(button)
+        localEventMonitor = LocalEventMonitor(mask: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+            if let button = self?.statusItem.button,
+               event.window == button.window
+            {
+                if (event.type == NSEvent.EventType.leftMouseDown) && !event.modifierFlags.contains(.command) {
+                    self?.didPressStatusBarButton(button)
+                } else {
+                    menu?.popUp(positioning: nil, at: CGPoint(x: 0, y: button.bounds.maxY + 5), in: button)
+                }
 
                 // Stop propagating the event so that the button remains highlighted.
                 return nil
@@ -130,22 +136,22 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
 }
 
 extension FluidMenuBarExtraStatusItem {
-    convenience init(title: String, window: NSWindow) {
-        self.init(window: window)
+    convenience init(title: String, window: NSWindow, menu: NSMenu? = nil) {
+        self.init(window: window, menu: menu)
 
         statusItem.button?.title = title
         statusItem.button?.setAccessibilityTitle(title)
     }
 
-    convenience init(title: String, image: String, window: NSWindow) {
-        self.init(window: window)
+    convenience init(title: String, image: String, window: NSWindow, menu: NSMenu? = nil) {
+        self.init(window: window, menu: menu)
 
         statusItem.button?.setAccessibilityTitle(title)
         statusItem.button?.image = NSImage(named: image)
     }
 
-    convenience init(title: String, systemImage: String, window: NSWindow) {
-        self.init(window: window)
+    convenience init(title: String, systemImage: String, window: NSWindow, menu: NSMenu? = nil) {
+        self.init(window: window, menu: menu)
 
         statusItem.button?.setAccessibilityTitle(title)
         statusItem.button?.image = NSImage(systemSymbolName: systemImage, accessibilityDescription: title)
