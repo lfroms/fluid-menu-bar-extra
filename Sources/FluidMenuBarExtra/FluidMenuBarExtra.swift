@@ -50,4 +50,8 @@ public final class FluidMenuBarExtra {
         let window = FluidMenuBarExtraWindow(title: title, animation: animation, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, systemImage: systemImage, window: window, menu: menu)
     }
+    
+    public func showWindow() {
+        statusItem.showWindow()
+    }
 }
