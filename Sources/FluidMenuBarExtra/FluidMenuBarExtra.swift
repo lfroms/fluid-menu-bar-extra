@@ -54,4 +54,8 @@ public final class FluidMenuBarExtra {
     public func showWindow() {
         statusItem.showWindow()
     }
+    
+    public func closeWindow() {
+        statusItem.dismissWindow()
+    }
 }
