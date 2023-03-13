@@ -45,6 +45,11 @@ public final class FluidMenuBarExtra {
         let window = FluidMenuBarExtraWindow(title: title, animation: animation, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, image: image, window: window, menu: menu, alignRight: alignRight)
     }
+    
+    public init(title: String, image: NSImage, animation: NSWindow.AnimationBehavior = .none, menu: NSMenu? = nil, alignRight: Bool = false, @ViewBuilder content: @escaping () -> some View) {
+        let window = FluidMenuBarExtraWindow(title: title, animation: animation, content: content)
+        statusItem = FluidMenuBarExtraStatusItem(title: title, image: image, window: window, menu: menu, alignRight: alignRight)
+    }
 
     public init(title: String, systemImage: String, animation: NSWindow.AnimationBehavior = .none, menu: NSMenu? = nil, alignRight: Bool = false, @ViewBuilder content: @escaping () -> some View) {
         let window = FluidMenuBarExtraWindow(title: title, animation: animation, content: content)

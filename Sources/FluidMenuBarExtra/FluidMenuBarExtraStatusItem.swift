@@ -165,6 +165,13 @@ extension FluidMenuBarExtraStatusItem {
         statusItem.button?.setAccessibilityTitle(title)
         statusItem.button?.image = NSImage(named: image)
     }
+    
+    convenience init(title: String, image: NSImage, window: NSWindow, menu: NSMenu? = nil, alignRight: Bool = false) {
+        self.init(window: window, menu: menu, alignRight: alignRight)
+        
+        statusItem.button?.setAccessibilityTitle(title)
+        statusItem.button?.image = image
+    }
 
     convenience init(title: String, systemImage: String, window: NSWindow, menu: NSMenu? = nil, alignRight: Bool = false) {
         self.init(window: window, menu: menu, alignRight: alignRight)
