@@ -20,7 +20,7 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         let view = NSVisualEffectView()
         view.blendingMode = .behindWindow
         view.state = .active
-        view.material = .popover
+        view.material = .underWindowBackground
         view.translatesAutoresizingMaskIntoConstraints = true
         return view
     }()

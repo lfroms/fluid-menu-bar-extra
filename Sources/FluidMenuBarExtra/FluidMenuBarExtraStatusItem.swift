@@ -29,7 +29,6 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         localEventMonitor = LocalEventMonitor(mask: [.leftMouseDown]) { [weak self] event in
             if let button = self?.statusItem.button, event.window == button.window, !event.modifierFlags.contains(.command) {
                 self?.didPressStatusBarButton(button)
-
                 // Stop propagating the event so that the button remains highlighted.
                 return nil
             }
@@ -37,12 +36,8 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
             return event
         }
 
-        globalEventMonitor = GlobalEventMonitor(mask: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
-            if let window = self?.window, window.isKeyWindow {
-                // Resign key window status if a external non-activating event is triggered,
-                // such as other system status bar menus.
-                window.resignKey()
-            }
+        globalEventMonitor = GlobalEventMonitor(mask: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            self?.dismissWindow()
         }
 
         window.delegate = self
@@ -71,14 +66,10 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         setButtonHighlighted(to: true)
     }
 
-    func windowDidResignKey(_ notification: Notification) {
-        globalEventMonitor?.stop()
-        dismissWindow()
-    }
-
     private func dismissWindow() {
         // Tells the system to cancel persisting the menu bar in full screen mode.
         DistributedNotificationCenter.default().post(name: .endMenuTracking, object: nil)
+        globalEventMonitor?.stop()
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.3
