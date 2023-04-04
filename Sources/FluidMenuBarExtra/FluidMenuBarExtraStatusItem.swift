@@ -48,7 +48,7 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         NSStatusBar.system.removeStatusItem(statusItem)
     }
 
-    private func didPressStatusBarButton(_ sender: NSStatusBarButton) {
+    func toggleWindow() {
         if window.isVisible {
             dismissWindow()
             return
@@ -59,6 +59,10 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         // Tells the system to persist the menu bar in full screen mode.
         DistributedNotificationCenter.default().post(name: .beginMenuTracking, object: nil)
         window.makeKeyAndOrderFront(nil)
+    }
+
+    private func didPressStatusBarButton(_ sender: NSStatusBarButton) {
+        toggleWindow()
     }
 
     func windowDidBecomeKey(_ notification: Notification) {
