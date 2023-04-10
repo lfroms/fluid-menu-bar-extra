@@ -18,9 +18,19 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
 
     private lazy var visualEffectView: NSVisualEffectView = {
         let view = NSVisualEffectView()
+        view.wantsLayer = true
         view.blendingMode = .behindWindow
         view.state = .active
         view.material = .underWindowBackground
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer?.cornerRadius = 8
+        view.layer?.cornerCurve = .continuous
+        return view
+    }()
+
+    // without it NSWindow/NSPanel will draw gross border around window, that will ignore visualEffectView's corner radius
+    private lazy var backgroundView: NSView = {
+        let view = NSView()
         view.translatesAutoresizingMaskIntoConstraints = true
         return view
     }()
@@ -48,7 +58,7 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
 
         super.init(
             contentRect: CGRect(x: 0, y: 0, width: 100, height: 100),
-            styleMask: [.titled, .nonactivatingPanel, .utilityWindow, .fullSizeContentView],
+            styleMask: [.borderless],
             backing: .buffered,
             defer: false
         )
@@ -62,6 +72,8 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         isOpaque = false
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
+        backgroundColor = .clear
+        hasShadow = true
 
         animationBehavior = .none
         collectionBehavior = [.auxiliary, .stationary, .moveToActiveSpace, .fullScreenAuxiliary]
@@ -72,11 +84,16 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         standardWindowButton(.miniaturizeButton)?.isHidden = true
         standardWindowButton(.zoomButton)?.isHidden = true
 
-        contentView = visualEffectView
+        contentView = backgroundView
+        backgroundView.addSubview(visualEffectView)
         visualEffectView.addSubview(hostingView)
         setContentSize(hostingView.intrinsicContentSize)
 
         NSLayoutConstraint.activate([
+            visualEffectView.topAnchor.constraint(equalTo: backgroundView.topAnchor),
+            visualEffectView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
+            visualEffectView.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor),
+            visualEffectView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
             hostingView.topAnchor.constraint(equalTo: visualEffectView.topAnchor),
             hostingView.trailingAnchor.constraint(equalTo: visualEffectView.trailingAnchor),
             hostingView.bottomAnchor.constraint(equalTo: visualEffectView.bottomAnchor),
