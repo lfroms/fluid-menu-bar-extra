@@ -76,7 +76,7 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         hasShadow = true
 
         animationBehavior = .none
-        collectionBehavior = [.auxiliary, .stationary, .moveToActiveSpace, .fullScreenAuxiliary]
+        collectionBehavior = [.auxiliary, .transient, .moveToActiveSpace, .fullScreenAuxiliary]
         isReleasedWhenClosed = false
         hidesOnDeactivate = false
 
