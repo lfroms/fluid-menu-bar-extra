@@ -35,8 +35,8 @@ struct RootViewModifier: ViewModifier {
                         .onAppear {
                             updateSize?(size: geometry.size)
                         }
-                        .onChange(of: geometry.size) { newValue in
-                            updateSize?(size: geometry.size)
+                        .onChange(of: geometry.size) { size in
+                            updateSize?(size: size)
                         }
                 }
             )
