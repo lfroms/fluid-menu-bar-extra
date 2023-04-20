@@ -14,6 +14,7 @@ import SwiftUI
 final class FluidMenuBarExtraStatusItem: NSObject {
     private let window: NSWindow
     private let statusItem: NSStatusItem
+    weak var menuBarExtraDelegate: FluidMenuBarExtraDelegate?
 
     private var localEventMonitor: EventMonitor?
     private var globalEventMonitor: EventMonitor?
@@ -67,6 +68,7 @@ final class FluidMenuBarExtraStatusItem: NSObject {
                 name: NSWorkspace.activeSpaceDidChangeNotification,
                 object: nil
             )
+        menuBarExtraDelegate?.menuBarExtraBecomeActive()
     }
 
     private func didPressStatusBarButton(_ sender: NSStatusBarButton) {
