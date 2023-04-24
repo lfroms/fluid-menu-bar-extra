@@ -43,7 +43,7 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         return view
     }()
 
-    init(title: String, content: @escaping () -> Content) {
+    init(title: String, animation: NSWindow.AnimationBehavior = .none, content: @escaping () -> Content) {
         self.content = content
 
         super.init(
@@ -63,8 +63,8 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
 
-        animationBehavior = .none
-        collectionBehavior = [.auxiliary, .stationary, .moveToActiveSpace, .fullScreenAuxiliary]
+        animationBehavior = animation
+        collectionBehavior = [.stationary, .moveToActiveSpace, .fullScreenAuxiliary]
         isReleasedWhenClosed = false
         hidesOnDeactivate = false
 
