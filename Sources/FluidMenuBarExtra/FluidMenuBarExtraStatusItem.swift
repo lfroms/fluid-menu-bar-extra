@@ -96,6 +96,7 @@ final class FluidMenuBarExtraStatusItem: NSObject {
             self?.window.orderOut(nil)
             self?.window.alphaValue = 1
         }
+        menuBarExtraDelegate?.menuBarExtraWasDeactivated()
     }
 
     private func setButtonHighlighted(to highlight: Bool) {
