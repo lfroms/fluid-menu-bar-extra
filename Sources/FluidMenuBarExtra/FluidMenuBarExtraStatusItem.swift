@@ -11,9 +11,9 @@ import SwiftUI
 
 /// An individual element displayed in the system menu bar that displays a window
 /// when triggered.
-final class FluidMenuBarExtraStatusItem: NSObject {
+public final class FluidMenuBarExtraStatusItem: NSObject {
     private let window: NSWindow
-    private let statusItem: NSStatusItem
+    public let statusItem: NSStatusItem
     weak var menuBarExtraDelegate: FluidMenuBarExtraDelegate?
 
     private var localEventMonitor: EventMonitor?

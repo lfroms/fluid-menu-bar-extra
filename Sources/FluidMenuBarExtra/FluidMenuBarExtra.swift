@@ -34,7 +34,7 @@ import SwiftUI
 /// your application delegate to the child views using the `environmentObject`
 /// modifier.
 public final class FluidMenuBarExtra {
-    private let statusItem: FluidMenuBarExtraStatusItem
+    public let statusItem: FluidMenuBarExtraStatusItem
 
     public init(
         title: String,
