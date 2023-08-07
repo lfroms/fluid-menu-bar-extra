@@ -34,20 +34,73 @@ import SwiftUI
 /// your application delegate to the child views using the `environmentObject`
 /// modifier.
 public final class FluidMenuBarExtra {
-    private let statusItem: FluidMenuBarExtraStatusItem
+    public let statusItem: FluidMenuBarExtraStatusItem
 
-    public init(title: String, @ViewBuilder content: @escaping () -> some View) {
-        let window = FluidMenuBarExtraWindow(title: title, content: content)
+    public var image: NSImage? {
+        get { statusItem.statusItem.button?.image }
+        set { statusItem.statusItem.button?.image = newValue }
+    }
+    
+    public init(
+        title: String,
+        menuBarExtraDelegate: FluidMenuBarExtraDelegate? = nil,
+        cornerRadius: CGFloat = 7,
+        maskedCorners: CACornerMask = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner],
+        @ViewBuilder content: @escaping () -> some View
+    ) {
+        let window = FluidMenuBarExtraWindow(title: title, cornerRadius: cornerRadius, maskedCorners: maskedCorners, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, window: window)
+        statusItem.menuBarExtraDelegate = menuBarExtraDelegate
     }
 
-    public init(title: String, image: String, @ViewBuilder content: @escaping () -> some View) {
-        let window = FluidMenuBarExtraWindow(title: title, content: content)
+    public init(
+        title: String,
+        image: String,
+        menuBarExtraDelegate: FluidMenuBarExtraDelegate? = nil,
+        cornerRadius: CGFloat = 7,
+        maskedCorners: CACornerMask = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner],
+        @ViewBuilder content: @escaping () -> some View
+    ) {
+        let window = FluidMenuBarExtraWindow(title: title, cornerRadius: cornerRadius, maskedCorners: maskedCorners, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, image: image, window: window)
+        statusItem.menuBarExtraDelegate = menuBarExtraDelegate
     }
 
-    public init(title: String, systemImage: String, @ViewBuilder content: @escaping () -> some View) {
-        let window = FluidMenuBarExtraWindow(title: title, content: content)
+    public init(
+        title: String,
+        systemImage: String,
+        menuBarExtraDelegate: FluidMenuBarExtraDelegate? = nil,
+        cornerRadius: CGFloat = 7,
+        maskedCorners: CACornerMask = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner],
+        @ViewBuilder content: @escaping () -> some View
+    ) {
+        let window = FluidMenuBarExtraWindow(title: title, cornerRadius: cornerRadius, maskedCorners: maskedCorners, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, systemImage: systemImage, window: window)
+        statusItem.menuBarExtraDelegate = menuBarExtraDelegate
+    }
+    
+    public init(
+        title: String,
+        nsImage: NSImage,
+        menuBarExtraDelegate: FluidMenuBarExtraDelegate? = nil,
+        cornerRadius: CGFloat = 7,
+        maskedCorners: CACornerMask = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMinXMaxYCorner, .layerMaxXMaxYCorner],
+        @ViewBuilder content: @escaping () -> some View
+    ) {
+        let window = FluidMenuBarExtraWindow(title: title, cornerRadius: cornerRadius, maskedCorners: maskedCorners, content: content)
+        statusItem = FluidMenuBarExtraStatusItem(title: title, nsImage: nsImage, window: window)
+        statusItem.menuBarExtraDelegate = menuBarExtraDelegate
+    }
+    
+    public func showWindow() {
+        statusItem.showWindow()
+    }
+    
+    public func closeWindow() {
+        statusItem.dismissWindow()
+    }
+
+    public func toggleMenuBarExtra() {
+        statusItem.toggleWindow()
     }
 }

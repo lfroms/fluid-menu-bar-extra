@@ -11,9 +11,10 @@ import SwiftUI
 
 /// An individual element displayed in the system menu bar that displays a window
 /// when triggered.
-final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
+public final class FluidMenuBarExtraStatusItem: NSObject {
     private let window: NSWindow
-    private let statusItem: NSStatusItem
+    public let statusItem: NSStatusItem
+    weak var menuBarExtraDelegate: FluidMenuBarExtraDelegate?
 
     private var localEventMonitor: EventMonitor?
     private var globalEventMonitor: EventMonitor?
@@ -27,25 +28,20 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         super.init()
 
         localEventMonitor = LocalEventMonitor(mask: [.leftMouseDown]) { [weak self] event in
-            if let button = self?.statusItem.button, event.window == button.window, !event.modifierFlags.contains(.command) {
+            if let button = self?.statusItem.button,
+               event.window == button.window,
+               !event.modifierFlags.contains(.command) {
                 self?.didPressStatusBarButton(button)
-
                 // Stop propagating the event so that the button remains highlighted.
                 return nil
             }
-
             return event
         }
 
-        globalEventMonitor = GlobalEventMonitor(mask: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
-            if let window = self?.window, window.isKeyWindow {
-                // Resign key window status if a external non-activating event is triggered,
-                // such as other system status bar menus.
-                window.resignKey()
-            }
+        globalEventMonitor = GlobalEventMonitor(mask: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            self?.dismissWindow()
         }
 
-        window.delegate = self
         localEventMonitor?.start()
     }
 
@@ -53,44 +49,65 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         NSStatusBar.system.removeStatusItem(statusItem)
     }
 
-    private func didPressStatusBarButton(_ sender: NSStatusBarButton) {
+    func toggleWindow() {
         if window.isVisible {
             dismissWindow()
             return
         }
-
+        if let menuBarExtraDelegate, !menuBarExtraDelegate.menuBarExtraShouldBecomeActive() {
+            return
+        }
         setWindowPosition()
-
+        setButtonHighlighted(to: true)
         // Tells the system to persist the menu bar in full screen mode.
         DistributedNotificationCenter.default().post(name: .beginMenuTracking, object: nil)
-        window.makeKeyAndOrderFront(nil)
-    }
-
-    func windowDidBecomeKey(_ notification: Notification) {
+        window.orderFront(nil)
         globalEventMonitor?.start()
-        setButtonHighlighted(to: true)
+        NSWorkspace.shared
+            .notificationCenter
+            .addObserver(
+                self,
+                selector: #selector(spaceDidChange(_:)),
+                name: NSWorkspace.activeSpaceDidChangeNotification,
+                object: nil
+            )
+        menuBarExtraDelegate?.menuBarExtraBecomeActive()
     }
 
-    func windowDidResignKey(_ notification: Notification) {
-        globalEventMonitor?.stop()
-        dismissWindow()
+    private func didPressStatusBarButton(_ sender: NSStatusBarButton) {
+        toggleWindow()
     }
 
-    private func dismissWindow() {
+    func showWindow() {
+        guard !window.isVisible,
+              let button = statusItem.button
+        else { return }
+
+        didPressStatusBarButton(button)
+    }
+
+    func dismissWindow() {
+        setButtonHighlighted(to: false)
         // Tells the system to cancel persisting the menu bar in full screen mode.
         DistributedNotificationCenter.default().post(name: .endMenuTracking, object: nil)
+        globalEventMonitor?.stop()
+        NSWorkspace.shared
+            .notificationCenter
+            .removeObserver(
+                self,
+                name: NSWorkspace.activeSpaceDidChangeNotification,
+                object: nil
+            )
 
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.3
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-
             window.animator().alphaValue = 0
-
         } completionHandler: { [weak self] in
             self?.window.orderOut(nil)
             self?.window.alphaValue = 1
-            self?.setButtonHighlighted(to: false)
         }
+        menuBarExtraDelegate?.menuBarExtraWasDeactivated()
     }
 
     private func setButtonHighlighted(to highlight: Bool) {
@@ -105,6 +122,7 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         }
 
         var targetRect = statusItemWindow.frame
+        targetRect.origin.y -= 1;
 
         if let screen = statusItemWindow.screen {
             let windowWidth = window.frame.width
@@ -115,7 +133,6 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
 
                 // Offset by window border size to align with highlighted button.
                 targetRect.origin.x += Metrics.windowBorderSize
-
             } else {
                 // Offset by window border size to align with highlighted button.
                 targetRect.origin.x -= Metrics.windowBorderSize
@@ -126,6 +143,13 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         }
 
         window.setFrameTopLeftPoint(targetRect.origin)
+    }
+
+    @objc
+    func spaceDidChange(_ note: Notification) {
+        if window.isVisible {
+            dismissWindow()
+        }
     }
 }
 
@@ -146,9 +170,14 @@ extension FluidMenuBarExtraStatusItem {
 
     convenience init(title: String, systemImage: String, window: NSWindow) {
         self.init(window: window)
-
         statusItem.button?.setAccessibilityTitle(title)
         statusItem.button?.image = NSImage(systemSymbolName: systemImage, accessibilityDescription: title)
+    }
+    
+    convenience init(title: String, nsImage: NSImage, window: NSWindow) {
+        self.init(window: window)
+        statusItem.button?.setAccessibilityTitle(title)
+        statusItem.button?.image = nsImage
     }
 }
 

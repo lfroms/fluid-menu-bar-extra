@@ -16,11 +16,22 @@ import SwiftUI
 final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
     private let content: () -> Content
 
-    private lazy var visualEffectView: NSVisualEffectView = {
+    private func createVisualEffectView(cornerRadius: CGFloat, maskedCorners: CACornerMask) -> NSVisualEffectView {
         let view = NSVisualEffectView()
+        view.wantsLayer = true
         view.blendingMode = .behindWindow
         view.state = .active
-        view.material = .popover
+        view.material = .underWindowBackground
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.layer?.cornerRadius = cornerRadius
+        view.layer?.maskedCorners = maskedCorners
+        view.layer?.cornerCurve = .continuous
+        return view
+    }
+
+    // without it NSWindow/NSPanel will draw gross border around window, that will ignore visualEffectView's corner radius
+    private lazy var backgroundView: NSView = {
+        let view = NSView()
         view.translatesAutoresizingMaskIntoConstraints = true
         return view
     }()
@@ -36,19 +47,21 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
     private lazy var hostingView: NSHostingView<some View> = {
         let view = NSHostingView(rootView: rootView)
         // Disable NSHostingView's default automatic sizing behavior.
-        view.sizingOptions = []
+        if #available(macOS 13, *) {
+            view.sizingOptions = []
+        }
         view.isVerticalContentSizeConstraintActive = false
         view.isHorizontalContentSizeConstraintActive = false
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
 
-    init(title: String, content: @escaping () -> Content) {
+    init(title: String, cornerRadius: CGFloat, maskedCorners: CACornerMask, content: @escaping () -> Content) {
         self.content = content
 
         super.init(
-            contentRect: CGRect(x: 0, y: 0, width: 100, height: 100),
-            styleMask: [.titled, .nonactivatingPanel, .utilityWindow, .fullSizeContentView],
+            contentRect: CGRect.zero,
+            styleMask: [.borderless],
             backing: .buffered,
             defer: false
         )
@@ -62,9 +75,15 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         isOpaque = false
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
+        backgroundColor = .clear
+        hasShadow = true
 
         animationBehavior = .none
-        collectionBehavior = [.auxiliary, .stationary, .moveToActiveSpace, .fullScreenAuxiliary]
+        if #available(macOS 13, *) {
+            collectionBehavior = [.auxiliary, .transient, .moveToActiveSpace, .fullScreenAuxiliary]
+        } else {
+            collectionBehavior = [.transient, .moveToActiveSpace, .fullScreenAuxiliary]
+        }
         isReleasedWhenClosed = false
         hidesOnDeactivate = false
 
@@ -72,11 +91,17 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         standardWindowButton(.miniaturizeButton)?.isHidden = true
         standardWindowButton(.zoomButton)?.isHidden = true
 
-        contentView = visualEffectView
+        contentView = backgroundView
+        let visualEffectView = createVisualEffectView(cornerRadius: cornerRadius, maskedCorners: maskedCorners)
+        backgroundView.addSubview(visualEffectView)
         visualEffectView.addSubview(hostingView)
         setContentSize(hostingView.intrinsicContentSize)
 
         NSLayoutConstraint.activate([
+            visualEffectView.topAnchor.constraint(equalTo: backgroundView.topAnchor),
+            visualEffectView.trailingAnchor.constraint(equalTo: backgroundView.trailingAnchor),
+            visualEffectView.bottomAnchor.constraint(equalTo: backgroundView.bottomAnchor),
+            visualEffectView.leadingAnchor.constraint(equalTo: backgroundView.leadingAnchor),
             hostingView.topAnchor.constraint(equalTo: visualEffectView.topAnchor),
             hostingView.trailingAnchor.constraint(equalTo: visualEffectView.trailingAnchor),
             hostingView.bottomAnchor.constraint(equalTo: visualEffectView.bottomAnchor),
