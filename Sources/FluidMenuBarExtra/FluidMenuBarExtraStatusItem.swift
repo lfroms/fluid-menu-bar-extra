@@ -54,6 +54,9 @@ public final class FluidMenuBarExtraStatusItem: NSObject {
             dismissWindow()
             return
         }
+        if let menuBarExtraDelegate, !menuBarExtraDelegate.menuBarExtraShouldBecomeActive() {
+            return
+        }
         setWindowPosition()
         setButtonHighlighted(to: true)
         // Tells the system to persist the menu bar in full screen mode.
@@ -75,7 +78,15 @@ public final class FluidMenuBarExtraStatusItem: NSObject {
         toggleWindow()
     }
 
-    private func dismissWindow() {
+    func showWindow() {
+        guard !window.isVisible,
+              let button = statusItem.button
+        else { return }
+
+        didPressStatusBarButton(button)
+    }
+
+    func dismissWindow() {
         setButtonHighlighted(to: false)
         // Tells the system to cancel persisting the menu bar in full screen mode.
         DistributedNotificationCenter.default().post(name: .endMenuTracking, object: nil)
@@ -111,6 +122,7 @@ public final class FluidMenuBarExtraStatusItem: NSObject {
         }
 
         var targetRect = statusItemWindow.frame
+        targetRect.origin.y -= 1;
 
         if let screen = statusItemWindow.screen {
             let windowWidth = window.frame.width
@@ -160,6 +172,12 @@ extension FluidMenuBarExtraStatusItem {
         self.init(window: window)
         statusItem.button?.setAccessibilityTitle(title)
         statusItem.button?.image = NSImage(systemSymbolName: systemImage, accessibilityDescription: title)
+    }
+    
+    convenience init(title: String, nsImage: NSImage, window: NSWindow) {
+        self.init(window: window)
+        statusItem.button?.setAccessibilityTitle(title)
+        statusItem.button?.image = nsImage
     }
 }
 

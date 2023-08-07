@@ -16,17 +16,18 @@ import SwiftUI
 final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
     private let content: () -> Content
 
-    private lazy var visualEffectView: NSVisualEffectView = {
+    private func createVisualEffectView(cornerRadius: CGFloat, maskedCorners: CACornerMask) -> NSVisualEffectView {
         let view = NSVisualEffectView()
         view.wantsLayer = true
         view.blendingMode = .behindWindow
         view.state = .active
         view.material = .underWindowBackground
         view.translatesAutoresizingMaskIntoConstraints = false
-        view.layer?.cornerRadius = 8
+        view.layer?.cornerRadius = cornerRadius
+        view.layer?.maskedCorners = maskedCorners
         view.layer?.cornerCurve = .continuous
         return view
-    }()
+    }
 
     // without it NSWindow/NSPanel will draw gross border around window, that will ignore visualEffectView's corner radius
     private lazy var backgroundView: NSView = {
@@ -55,11 +56,11 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         return view
     }()
 
-    init(title: String, content: @escaping () -> Content) {
+    init(title: String, cornerRadius: CGFloat, maskedCorners: CACornerMask, content: @escaping () -> Content) {
         self.content = content
 
         super.init(
-            contentRect: CGRect(x: 0, y: 0, width: 100, height: 100),
+            contentRect: CGRect.zero,
             styleMask: [.borderless],
             backing: .buffered,
             defer: false
@@ -91,6 +92,7 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         standardWindowButton(.zoomButton)?.isHidden = true
 
         contentView = backgroundView
+        let visualEffectView = createVisualEffectView(cornerRadius: cornerRadius, maskedCorners: maskedCorners)
         backgroundView.addSubview(visualEffectView)
         visualEffectView.addSubview(hostingView)
         setContentSize(hostingView.intrinsicContentSize)

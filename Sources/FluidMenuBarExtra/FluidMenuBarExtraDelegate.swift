@@ -8,6 +8,7 @@
 import Foundation
 
 public protocol FluidMenuBarExtraDelegate: AnyObject {
+    func menuBarExtraShouldBecomeActive() -> Bool
     func menuBarExtraBecomeActive()
     func menuBarExtraWasDeactivated()
 }
