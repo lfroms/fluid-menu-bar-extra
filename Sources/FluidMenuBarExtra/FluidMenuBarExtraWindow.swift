@@ -36,7 +36,9 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
     private lazy var hostingView: NSHostingView<some View> = {
         let view = NSHostingView(rootView: rootView)
         // Disable NSHostingView's default automatic sizing behavior.
-        view.sizingOptions = []
+        if #available(macOS 13.0, *) {
+            view.sizingOptions = []
+        }
         view.isVerticalContentSizeConstraintActive = false
         view.isHorizontalContentSizeConstraintActive = false
         view.translatesAutoresizingMaskIntoConstraints = false
@@ -64,7 +66,11 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         titlebarAppearsTransparent = true
 
         animationBehavior = .none
-        collectionBehavior = [.auxiliary, .stationary, .moveToActiveSpace, .fullScreenAuxiliary]
+        if #available(macOS 13.0, *) {
+            collectionBehavior = [.auxiliary, .stationary, .moveToActiveSpace, .fullScreenAuxiliary]
+        } else {
+            collectionBehavior = [.stationary, .moveToActiveSpace, .fullScreenAuxiliary]
+        }
         isReleasedWhenClosed = false
         hidesOnDeactivate = false
 
