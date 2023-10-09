@@ -14,8 +14,10 @@ import SwiftUI
 /// `FluidMenuBarExtraWindow` listens for changes to the size of its content and
 /// automatically adjusts its frame to match.
 final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
+    let controller = FluidMenuBarExtraController()
+    
     private let content: () -> Content
-
+    
     private lazy var visualEffectView: NSVisualEffectView = {
         let view = NSVisualEffectView()
         view.blendingMode = .behindWindow
@@ -24,15 +26,16 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         view.translatesAutoresizingMaskIntoConstraints = true
         return view
     }()
-
+    
     private var rootView: some View {
         content()
+            .environmentObject(controller)
             .modifier(RootViewModifier(windowTitle: title))
             .onSizeUpdate { [weak self] size in
                 self?.contentSizeDidUpdate(to: size)
             }
     }
-
+    
     private lazy var hostingView: NSHostingView<some View> = {
         let view = NSHostingView(rootView: rootView)
         // Disable NSHostingView's default automatic sizing behavior.
@@ -47,7 +50,7 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
 
     init(title: String, content: @escaping () -> Content) {
         self.content = content
-
+        
         super.init(
             contentRect: CGRect(x: 0, y: 0, width: 100, height: 100),
             styleMask: [.titled, .nonactivatingPanel, .utilityWindow, .fullSizeContentView],

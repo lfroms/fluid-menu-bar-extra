@@ -12,11 +12,22 @@ import SwiftUI
 /// An individual element displayed in the system menu bar that displays a window
 /// when triggered.
 final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
+    
+    // MARK: Internal
+    
+    var isWindowVisible: Bool {
+        window.isVisible
+    }
+    
+    // MARK: Private
+    
     private let window: NSWindow
     private let statusItem: NSStatusItem
 
     private var localEventMonitor: EventMonitor?
     private var globalEventMonitor: EventMonitor?
+    
+    // MARK: Lifecycle
 
     private init(window: NSWindow) {
         self.window = window
@@ -58,7 +69,10 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
             dismissWindow()
             return
         }
-
+        showWindow()
+    }
+    
+    func showWindow() {
         setWindowPosition()
 
         // Tells the system to persist the menu bar in full screen mode.
@@ -76,10 +90,10 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         dismissWindow()
     }
 
-    private func dismissWindow() {
+    func dismissWindow() {
         // Tells the system to cancel persisting the menu bar in full screen mode.
         DistributedNotificationCenter.default().post(name: .endMenuTracking, object: nil)
-
+        
         NSAnimationContext.runAnimationGroup { context in
             context.duration = 0.3
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
