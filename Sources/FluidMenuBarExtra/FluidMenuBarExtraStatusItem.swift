@@ -90,12 +90,13 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         dismissWindow()
     }
 
-    func dismissWindow() {
+    func dismissWindow(animate: Bool = true, completionHandler: (() -> Void)? = nil) {
+        
         // Tells the system to cancel persisting the menu bar in full screen mode.
         DistributedNotificationCenter.default().post(name: .endMenuTracking, object: nil)
         
         NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.3
+            context.duration = animate ? 0.3 : 0
             context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
 
             window.animator().alphaValue = 0
@@ -104,6 +105,7 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
             self?.window.orderOut(nil)
             self?.window.alphaValue = 1
             self?.setButtonHighlighted(to: false)
+            completionHandler?()
         }
     }
 

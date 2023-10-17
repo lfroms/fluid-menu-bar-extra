@@ -21,7 +21,20 @@ public class FluidMenuBarExtraController: ObservableObject {
         statusItem?.showWindow()
     }
     
-    public func dismissWindow() {
-        statusItem?.dismissWindow()
+    public func dismissWindow(animate: Bool = true, completionHandler: (() -> Void)? = nil) {
+        guard let statusItem else {
+            completionHandler?()
+            return
+        }
+        statusItem.dismissWindow(animate: animate, completionHandler: completionHandler)
+    }
+    
+    @MainActor
+    public func dismissWindow(animate: Bool = true) async {
+        await withCheckedContinuation { continuation in
+            dismissWindow(animate: animate) {
+                continuation.resume()
+            }
+        }
     }
 }
