@@ -34,20 +34,35 @@ import SwiftUI
 /// your application delegate to the child views using the `environmentObject`
 /// modifier.
 public final class FluidMenuBarExtra {
+    
+    // MARK: Public private(set)
+    
+    public private(set) var controller: FluidMenuBarExtraController = FluidMenuBarExtraController()
+    
+    // MARK: Private
+    
     private let statusItem: FluidMenuBarExtraStatusItem
+    
+    // MARK: Lifecycle
 
     public init(title: String, @ViewBuilder content: @escaping () -> some View) {
         let window = FluidMenuBarExtraWindow(title: title, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, window: window)
+        window.controller.statusItem = statusItem
+        controller = window.controller
     }
 
     public init(title: String, image: String, @ViewBuilder content: @escaping () -> some View) {
         let window = FluidMenuBarExtraWindow(title: title, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, image: image, window: window)
+        window.controller.statusItem = statusItem
+        controller = window.controller
     }
 
     public init(title: String, systemImage: String, @ViewBuilder content: @escaping () -> some View) {
         let window = FluidMenuBarExtraWindow(title: title, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, systemImage: systemImage, window: window)
+        window.controller.statusItem = statusItem
+        controller = window.controller
     }
 }
