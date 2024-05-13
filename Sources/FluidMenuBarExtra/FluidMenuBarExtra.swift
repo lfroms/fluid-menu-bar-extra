@@ -50,4 +50,17 @@ public final class FluidMenuBarExtra {
         let window = FluidMenuBarExtraWindow(title: title, content: content)
         statusItem = FluidMenuBarExtraStatusItem(title: title, systemImage: systemImage, window: window)
     }
+    
+    public func setTitle(_ newTitle: String?) {
+        statusItem.setTitle(newTitle: newTitle)
+    }
+    
+    public func setImage(imageName: String) {
+        statusItem.setImage(imageName: imageName)
+    }
+    
+    public func setImage(systemImageName: String, accessibilityDescription: String? = nil) {
+        statusItem.setImage(systemImageName: systemImageName, accessibilityDescription: accessibilityDescription)
+    }
+    
 }

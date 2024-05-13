@@ -52,6 +52,18 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     deinit {
         NSStatusBar.system.removeStatusItem(statusItem)
     }
+    
+    func setTitle(newTitle: String?) {
+        self.statusItem.button?.title = newTitle ?? ""
+    }
+    
+    func setImage(imageName: String) {
+        statusItem.button?.image = NSImage(named: imageName)
+    }
+    
+    func setImage(systemImageName: String, accessibilityDescription: String? = nil) {
+        statusItem.button?.image = NSImage(systemSymbolName: systemImageName, accessibilityDescription: accessibilityDescription)
+    }
 
     private func didPressStatusBarButton(_ sender: NSStatusBarButton) {
         if window.isVisible {
