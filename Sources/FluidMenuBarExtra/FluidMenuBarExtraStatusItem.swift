@@ -1,13 +1,6 @@
-//
-//  FluidMenuBarExtraStatusItem.swift
-//  FluidMenuBarExtra
-//
-//  Created by Lukas Romsicki on 2022-12-17.
-//  Copyright © 2022 Lukas Romsicki.
-//
-
 import AppKit
 import SwiftUI
+import Carbon
 
 /// An individual element displayed in the system menu bar that displays a window
 /// when triggered.
@@ -39,7 +32,7 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
 
         globalEventMonitor = GlobalEventMonitor(mask: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             if let window = self?.window, window.isKeyWindow {
-                // Resign key window status if a external non-activating event is triggered,
+                // Resign key window status if an external non-activating event is triggered,
                 // such as other system status bar menus.
                 window.resignKey()
             }
@@ -47,27 +40,28 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
 
         window.delegate = self
         localEventMonitor?.start()
+        registerForMenuBarEvents()
     }
 
     deinit {
         NSStatusBar.system.removeStatusItem(statusItem)
     }
-    
+
     func setTitle(newTitle: String?) {
         self.statusItem.button?.title = newTitle ?? ""
     }
-    
+
     func setImage(imageName: String) {
         statusItem.button?.image = NSImage(named: imageName)
     }
-    
+
     func setImage(systemImageName: String, accessibilityDescription: String? = nil) {
         statusItem.button?.image = NSImage(systemSymbolName: systemImageName, accessibilityDescription: accessibilityDescription)
     }
 
     private func didPressStatusBarButton(_ sender: NSStatusBarButton) {
         if window.isVisible {
-            dismissWindow()
+            dismissWindow(animated: true)
             return
         }
 
@@ -85,23 +79,29 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
 
     func windowDidResignKey(_ notification: Notification) {
         globalEventMonitor?.stop()
-        dismissWindow()
+        dismissWindow(animated: true)
     }
 
-    private func dismissWindow() {
+    private func dismissWindow(animated: Bool) {
         // Tells the system to cancel persisting the menu bar in full screen mode.
         DistributedNotificationCenter.default().post(name: .endMenuTracking, object: nil)
 
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.3
-            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+        if animated {
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.3
+                context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
 
-            window.animator().alphaValue = 0
+                window.animator().alphaValue = 0
 
-        } completionHandler: { [weak self] in
-            self?.window.orderOut(nil)
-            self?.window.alphaValue = 1
-            self?.setButtonHighlighted(to: false)
+            } completionHandler: { [weak self] in
+                self?.window.orderOut(nil)
+                self?.window.alphaValue = 1
+                self?.setButtonHighlighted(to: false)
+            }
+        } else {
+            window.orderOut(nil)
+            window.alphaValue = 1
+            setButtonHighlighted(to: false)
         }
     }
 
@@ -138,6 +138,45 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         }
 
         window.setFrameTopLeftPoint(targetRect.origin)
+    }
+
+    // Register for menu bar events
+    private func registerForMenuBarEvents() {
+        let eventTypes: [EventTypeSpec] = [
+            EventTypeSpec(eventClass: UInt32(kEventClassMenu), eventKind: UInt32(kEventMenuBarHidden)),
+            EventTypeSpec(eventClass: UInt32(kEventClassMenu), eventKind: UInt32(kEventMenuBarShown))
+        ]
+
+        let eventHandler: EventHandlerProcPtr = { (inHandlerCallRef, inEvent, userData) -> OSStatus in
+            guard let inEvent = inEvent else {
+                return OSStatus(eventNotHandledErr)
+            }
+
+            let eventKind = GetEventKind(inEvent)
+            let selfInstance = Unmanaged<FluidMenuBarExtraStatusItem>.fromOpaque(userData!).takeUnretainedValue()
+
+            switch eventKind {
+            case UInt32(kEventMenuBarHidden):
+                selfInstance.dismissWindow(animated: false)
+            case UInt32(kEventMenuBarShown):
+                // Handle menu bar shown if needed
+                break
+            default:
+                return OSStatus(eventNotHandledErr)
+            }
+
+            return noErr
+        }
+
+        var eventHandlerRef: EventHandlerRef?
+        let userData = Unmanaged.passUnretained(self).toOpaque()
+        let status = InstallEventHandler(GetEventDispatcherTarget(), eventHandler, eventTypes.count, eventTypes, userData, &eventHandlerRef)
+
+        if status != noErr {
+            print("Failed to register event handler")
+        } else {
+            print("Event handler registered successfully")
+        }
     }
 }
 
