@@ -177,6 +177,20 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         } else {
             print("Event handler registered successfully")
         }
+
+        // Register for Mission Control events
+        registerForMissionControlEvents()
+    }
+
+    private func registerForMissionControlEvents() {
+        NSWorkspace.shared.notificationCenter.addObserver(self,
+                                                          selector: #selector(missionControlDidActivate),
+                                                          name: NSNotification.Name("com.apple.notificationcenterui.MissionControlDidActivate"),
+                                                          object: nil)
+    }
+
+    @objc private func missionControlDidActivate() {
+        dismissWindow(animated: false)
     }
 }
 
