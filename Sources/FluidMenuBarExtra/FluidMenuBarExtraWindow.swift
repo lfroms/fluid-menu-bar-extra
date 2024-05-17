@@ -68,7 +68,7 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
 
         animationBehavior = .none
         if #available(macOS 13.0, *) {
-            collectionBehavior = [.auxiliary, .stationary, .moveToActiveSpace, .fullScreenAuxiliary, .transient, .ignoresCycle]
+            collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary, .transient, .ignoresCycle]
         } else {
             collectionBehavior = [.stationary, .moveToActiveSpace, .fullScreenAuxiliary, .transient]
         }
