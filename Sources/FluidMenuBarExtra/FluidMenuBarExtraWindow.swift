@@ -61,16 +61,15 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         isMovableByWindowBackground = false
         isFloatingPanel = true
         level = .statusBar
-           
         isOpaque = false
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
 
         animationBehavior = .none
         if #available(macOS 13.0, *) {
-            collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary, .transient, .ignoresCycle]
+            collectionBehavior = [.auxiliary, .stationary, .moveToActiveSpace, .fullScreenAuxiliary]
         } else {
-            collectionBehavior = [.stationary, .moveToActiveSpace, .fullScreenAuxiliary, .transient]
+            collectionBehavior = [.stationary, .moveToActiveSpace, .fullScreenAuxiliary]
         }
         isReleasedWhenClosed = false
         hidesOnDeactivate = false
