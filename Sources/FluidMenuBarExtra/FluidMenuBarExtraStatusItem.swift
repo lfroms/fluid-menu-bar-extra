@@ -65,6 +65,11 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
     
     func setTitle(newTitle: String?) {
         self.statusItem.button?.title = newTitle ?? ""
+        
+        DispatchQueue.main.async {
+            self.setWindowPosition()
+        }
+        
     }
     
     func setImage(imageName: String) {
