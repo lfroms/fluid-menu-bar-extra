@@ -51,6 +51,10 @@ public final class FluidMenuBarExtra {
         statusItem = FluidMenuBarExtraStatusItem(title: title, systemImage: systemImage, window: window)
     }
     
+    public func setMonospacedFont() {
+        statusItem.setMonospacedFont()
+    }
+    
     public func setTitle(_ newTitle: String?) {
         statusItem.setTitle(newTitle: newTitle)
     }

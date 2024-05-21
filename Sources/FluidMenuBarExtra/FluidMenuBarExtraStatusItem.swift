@@ -53,6 +53,16 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         NSStatusBar.system.removeStatusItem(statusItem)
     }
     
+    func setMonospacedFont() {
+        if let button = statusItem.button {
+                    // Get the current font size
+                    let currentFontSize = button.font?.pointSize ?? NSFont.systemFontSize
+                    // Set the button's font to a monospaced digit system font with the existing font size
+                    button.font = NSFont.monospacedDigitSystemFont(ofSize: currentFontSize, weight: .regular)
+                    
+                }
+    }
+    
     func setTitle(newTitle: String?) {
         self.statusItem.button?.title = newTitle ?? ""
     }

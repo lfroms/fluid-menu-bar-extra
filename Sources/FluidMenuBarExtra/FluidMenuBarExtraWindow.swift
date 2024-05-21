@@ -55,6 +55,8 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
             defer: false
         )
 
+      
+        
         self.title = title
 
         isMovable = false
