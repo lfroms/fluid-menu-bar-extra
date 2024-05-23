@@ -70,6 +70,8 @@ final class FluidMenuBarExtraStatusItem: NSObject, NSWindowDelegate {
         }
 
         setWindowPosition()
+        window.level = .floating
+        window.collectionBehavior = .moveToActiveSpace
 
         // Tells the system to persist the menu bar in full screen mode.
         DistributedNotificationCenter.default().post(name: .beginMenuTracking, object: nil)
