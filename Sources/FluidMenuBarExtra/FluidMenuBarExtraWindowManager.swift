@@ -37,8 +37,12 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
     private var subwindowHovering = false
 
     var sessionID = UUID()
+    
+    private var subwindowViews = [String:AnyView]()
+    private var subwindowPositions = [String:CGPoint]()
 
     private init(title: String, @ViewBuilder windowContent: @escaping () -> AnyView) {
+        
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         self.statusItem.isVisible = true
         
@@ -181,11 +185,19 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
     private var subwindowID = UUID()
 
     
+    public func registerSubwindowView(view: AnyView, for id: String) {
+        subwindowViews[id] = view
+    }
     
-    public func openSubWindow(id: String, at point: CGPoint, view: AnyView) {
+    public func registerSubwindowButtonPosition(point: CGPoint, for id: String) {
+        subwindowPositions[id] = point
+    }
+    
+    public func openSubWindow(id: String) {
         //print("HLD: Open subwindow with \(id)")
         
       //  //print("Open subwindow \(id) ")
+        
         closeSubwindowWorkItem?.cancel()
         openSubwindowWorkItem?.cancel()
         
@@ -194,6 +206,9 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
         var possibleItem: DispatchWorkItem?
         let item = DispatchWorkItem { [self] in
            
+            guard let view = subwindowViews[id] else { return }
+            guard let pos = subwindowPositions[id] else { return }
+            
             if mainWindowVisible == false {
                 return
             }
@@ -202,7 +217,7 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
                 return
             }
 
-            self.latestSubwindowPoint = point
+            self.latestSubwindowPoint = pos
             subWindow?.close()
             subWindow = nil
             
