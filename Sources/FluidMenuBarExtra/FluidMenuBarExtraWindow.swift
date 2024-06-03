@@ -13,8 +13,27 @@ import SwiftUI
 ///
 /// `FluidMenuBarExtraWindow` listens for changes to the size of its content and
 /// automatically adjusts its frame to match.
-final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
-    private let content: () -> Content
+class FluidMenuBarExtraWindow<Content: View>: NSPanel, ContentUpdatable {
+    
+    var resize = true {
+        didSet {
+            if let latestCGSize = self.latestCGSize, self.resize == true {
+                self.contentSizeDidUpdate(to: latestCGSize)
+            }
+        }
+    }
+     
+    var isSecondary = false {
+        didSet {
+            self.level = isSecondary ? .popUpMenu : .normal
+            self.isFloatingPanel = isSecondary
+            self.hidesOnDeactivate = isSecondary
+        }
+    }
+    
+    var latestCGSize: CGSize?
+    
+    private var content: () -> Content
 
     private lazy var visualEffectView: NSVisualEffectView = {
         let view = NSVisualEffectView()
@@ -25,43 +44,44 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         return view
     }()
 
-    private var rootView: some View {
-        content()
-            .modifier(RootViewModifier(windowTitle: title))
-            .onSizeUpdate { [weak self] size in
-                self?.contentSizeDidUpdate(to: size)
-            }
+    private unowned var windowManager: FluidMenuBarExtraWindowManager
+     
+    private var rootView: AnyView {
+        AnyView(
+            content()
+                .environmentObject(windowManager)
+                .modifier(RootViewModifier(windowTitle: title))
+                .onSizeUpdate { [weak self] size in
+                    self?.latestCGSize = size
+                    if (self?.resize ?? true) {
+                        self?.contentSizeDidUpdate(to: size)
+                    }
+                }
+        )
+    }
+     
+    func setWindowManager(_ manager: FluidMenuBarExtraWindowManager) {
+        self.windowManager = manager
     }
 
-    private lazy var hostingView: NSHostingView<some View> = {
-        let view = NSHostingView(rootView: rootView)
-        // Disable NSHostingView's default automatic sizing behavior.
-        if #available(macOS 13.0, *) {
-            view.sizingOptions = []
-        }
-        view.isVerticalContentSizeConstraintActive = false
-        view.isHorizontalContentSizeConstraintActive = false
-        view.translatesAutoresizingMaskIntoConstraints = false
-        return view
-    }()
+    private var hostingView: NSHostingView<AnyView>!
 
-    init(title: String, content: @escaping () -> Content) {
+    init(contentRect: CGRect? = nil, title: String, windowManager: FluidMenuBarExtraWindowManager, content: @escaping () -> Content) {
         self.content = content
-
+        self.windowManager = windowManager
+         
         super.init(
-            contentRect: CGRect(x: 0, y: 0, width: 100, height: 100),
+            contentRect: contentRect ?? CGRect(x: 0, y: 0, width: 100, height: 100),
             styleMask: [.titled, .nonactivatingPanel, .utilityWindow, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
-
-      
         
         self.title = title
 
         isMovable = false
         isMovableByWindowBackground = false
-        isFloatingPanel = true
+        isFloatingPanel = false
         level = .statusBar
         isOpaque = false
         titleVisibility = .hidden
@@ -81,6 +101,9 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         standardWindowButton(.zoomButton)?.isHidden = true
 
         contentView = visualEffectView
+        
+        setupHostingView()
+
         visualEffectView.addSubview(hostingView)
         setContentSize(hostingView.intrinsicContentSize)
 
@@ -91,8 +114,25 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
             hostingView.leadingAnchor.constraint(equalTo: visualEffectView.leadingAnchor)
         ])
     }
+    
+    private func setupHostingView() {
+        hostingView = NSHostingView(rootView: rootView)
+        // Disable NSHostingView's default automatic sizing behavior.
+        if #available(macOS 13.0, *) {
+            hostingView.sizingOptions = []
+        }
+        hostingView.isVerticalContentSizeConstraintActive = false
+        hostingView.isHorizontalContentSizeConstraintActive = false
+        hostingView.translatesAutoresizingMaskIntoConstraints = false
+    }
 
-    private func contentSizeDidUpdate(to size: CGSize) {
+    public func resizeBasedOnLastSize() {
+        if let latestCGSize = self.latestCGSize {
+            self.contentSizeDidUpdate(to: latestCGSize)
+        }
+    }
+
+    public func contentSizeDidUpdate(to size: CGSize) {
         var nextFrame = frame
         let previousContentSize = contentRect(forFrameRect: frame).size
 
@@ -108,7 +148,36 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         }
 
         DispatchQueue.main.async { [weak self] in
-            self?.setFrame(nextFrame, display: true, animate: true)
+            self?.setFrame(nextFrame, display: true, animate: false)
         }
     }
+    
+    // New method to update the content with AnyView
+    public func updateContent(to newContent: AnyView) {
+        // Remove old hosting view
+        hostingView.removeFromSuperview()
+        
+        // Update the content closure to return the new content
+        self.content = { newContent as! Content }
+        
+        // Recreate the hosting view with the new content
+        setupHostingView()
+
+        // Add the new hosting view to the visual effect view
+        visualEffectView.addSubview(hostingView)
+        setContentSize(hostingView.intrinsicContentSize)
+
+        NSLayoutConstraint.activate([
+            hostingView.topAnchor.constraint(equalTo: visualEffectView.topAnchor),
+            hostingView.trailingAnchor.constraint(equalTo: visualEffectView.trailingAnchor),
+            hostingView.bottomAnchor.constraint(equalTo: visualEffectView.bottomAnchor),
+            hostingView.leadingAnchor.constraint(equalTo: visualEffectView.leadingAnchor)
+        ])
+    }
+    
+   
+}
+
+protocol ContentUpdatable {
+    func updateContent(to newContent: AnyView)
 }

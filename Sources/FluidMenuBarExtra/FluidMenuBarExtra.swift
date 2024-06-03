@@ -34,21 +34,21 @@ import SwiftUI
 /// your application delegate to the child views using the `environmentObject`
 /// modifier.
 public final class FluidMenuBarExtra {
-    private let statusItem: FluidMenuBarExtraStatusItem
+    public let statusItem: FluidMenuBarExtraWindowManager
 
-    public init(title: String, @ViewBuilder content: @escaping () -> some View) {
-        let window = FluidMenuBarExtraWindow(title: title, content: content)
-        statusItem = FluidMenuBarExtraStatusItem(title: title, window: window)
+    public init(title: String, @ViewBuilder content: @escaping () -> AnyView) {
+       
+        statusItem = FluidMenuBarExtraWindowManager(title: title, content: content)
     }
 
-    public init(title: String, image: String, @ViewBuilder content: @escaping () -> some View) {
-        let window = FluidMenuBarExtraWindow(title: title, content: content)
-        statusItem = FluidMenuBarExtraStatusItem(title: title, image: image, window: window)
+    public init(title: String, image: String, @ViewBuilder content: @escaping () -> AnyView) {
+        
+        statusItem = FluidMenuBarExtraWindowManager(title: title, image: image, content: content)
     }
 
-    public init(title: String, systemImage: String, @ViewBuilder content: @escaping () -> some View) {
-        let window = FluidMenuBarExtraWindow(title: title, content: content)
-        statusItem = FluidMenuBarExtraStatusItem(title: title, systemImage: systemImage, window: window)
+    public init(title: String, systemImage: String, @ViewBuilder content: @escaping () -> AnyView) {
+       
+        statusItem = FluidMenuBarExtraWindowManager(title: title, systemImage: systemImage, content: content)
     }
     
     public func setMonospacedFont() {
