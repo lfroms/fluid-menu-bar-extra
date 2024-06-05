@@ -303,7 +303,7 @@ extension ModernMenuBarExtraWindow {
         
     }
 
-    public func closeSubwindow() {
+    public func closeSubwindow(notify: Bool = true) {
         
         
         
@@ -320,7 +320,10 @@ extension ModernMenuBarExtraWindow {
             
             if !subwindowHovering {
                
-                hoverManager?.setWindowHovering(false, id: currentHoverId)
+                if notify {
+                    
+                    hoverManager?.setWindowHovering(false, id: currentHoverId)
+                }
                 //print("Close subwindow")
                 subWindow?.orderOut(nil)
                 subWindow?.close()
