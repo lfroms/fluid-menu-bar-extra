@@ -16,9 +16,9 @@ import Combine
 /// automatically adjusts its frame to match.
 public class ModernMenuBarExtraWindow: NSPanel, NSWindowDelegate, ObservableObject {
     
-    var subWindow: ModernMenuBarExtraWindow?
+    public var subWindow: ModernMenuBarExtraWindow?
     
-    private var currentHoverId: String?
+    public var currentHoverId: String?
     
     public var hoverManager: SubWindowSelectionManager?
     
@@ -34,6 +34,9 @@ public class ModernMenuBarExtraWindow: NSPanel, NSWindowDelegate, ObservableObje
     
     private var latestSubwindowPoint: CGPoint?
     private var subwindowHovering = false
+    
+    var windowManager: FluidMenuBarExtraWindowManager?
+    
     
     var resize = true {
         didSet {
@@ -236,6 +239,8 @@ extension ModernMenuBarExtraWindow {
             
             w.delegate = self
             
+            w.windowManager = self.windowManager
+            
             if !(possibleItem?.isCancelled ?? false) {
                 subWindow = w
                 
@@ -263,28 +268,7 @@ extension ModernMenuBarExtraWindow {
         subwindowPositions[id] = point
     }
     
-    /*func mouseMoved(event: NSEvent) {
-        DispatchQueue.main.async { [self] in
-          
-            
-            let cursorPosition = NSEvent.mouseLocation
-            
-            if let window = self.subWindow {
-                subwindowHovering = window.isMouseInside(mouseLocation: cursorPosition, tolerance: 3)
-                
-                if subwindowHovering {
-                    //print("SWH 3")
-                    hoverManager!.setWindowHovering(true, id: currentHoverId)
-                    closeSubwindowWorkItem?.cancel()
-                } else {
-                    if !mainWindow.isMouseInside(mouseLocation: cursorPosition, tolerance: 30) {
-                        
-                        closeSubwindow()
-                    }
-                }
-            }
-        }
-    } */
+
 
     func updateSubwindowPosition() {
         guard let subWindow = subWindow else { return }
@@ -310,30 +294,62 @@ extension ModernMenuBarExtraWindow {
         
         updateSubwindowPosition()
     }
+    
+    override public func close() {
+        
+        
+        closeSubwindow()
+        super.close()
+        
+    }
 
-    public func closeSubwindow(force: Bool = false, notify: Bool = true) {
+    public func closeSubwindow() {
+        
+        
+        
         let id = subwindowID
         
         openSubwindowWorkItem?.cancel()
         
         let item = DispatchWorkItem { [self] in
+            
+         
             if id != subwindowID {
                 return
             }
             
-            if !subwindowHovering || force {
-                //print("SWH 4")
-                if notify {
-                    hoverManager?.setWindowHovering(false, id: currentHoverId)
-                }
-                
+            if !subwindowHovering {
+               
+                hoverManager?.setWindowHovering(false, id: currentHoverId)
+                //print("Close subwindow")
                 subWindow?.orderOut(nil)
                 subWindow?.close()
                 subWindow = nil
             }
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.0, execute: item)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: item)
+    }
+    
+   
+    func mouseMoved(to cursorPosition: NSPoint) {
+        
+        if let window = self.subWindow {
+                        subwindowHovering = window.isMouseInside(mouseLocation: cursorPosition, tolerance: 3)
+                        
+                        if subwindowHovering {
+                            //print("SWH 3")
+                            hoverManager!.setWindowHovering(true, id: currentHoverId)
+                            closeSubwindowWorkItem?.cancel()
+                        } else {
+                            if !self.isMouseInside(mouseLocation: cursorPosition, tolerance: 30) {
+                                
+                                closeSubwindow()
+                            }
+                        }
+                    }
+        
+        subWindow?.mouseMoved(to: cursorPosition)
     }
     
 }

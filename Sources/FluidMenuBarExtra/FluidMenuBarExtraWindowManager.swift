@@ -32,7 +32,7 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
 
     var sessionID = UUID()
     
-   
+    var latestCursorPosition: NSPoint?
 
     private init(title: String, @ViewBuilder windowContent: @escaping () -> AnyView) {
         
@@ -46,6 +46,8 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
         
         let window = ModernMenuBarExtraWindow(title: title, content: windowContent)
         self.mainWindow = window
+        
+        window.windowManager = self
         
         self.setWindowPosition(window)
         
@@ -166,56 +168,16 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
     }
 
  
-    
-   /* public func openSubWindow(id: String) {
-        //print("HLD: Open subwindow with \(id)")
-        
-      //  //print("Open subwindow \(id) ")
-        
-        closeSubwindowWorkItem?.cancel()
-        openSubwindowWorkItem?.cancel()
-        
-        if mainWindowVisible == false { return }
-        
-        var possibleItem: DispatchWorkItem?
-        let item = DispatchWorkItem { [self] in
-           
-            guard let view = subwindowViews[id] else { return }
-            guard let pos = subwindowPositions[id] else { return }
+   
+    func mouseMoved(event: NSEvent) {
+       
+        //print("Mouse moved")
             
-            if mainWindowVisible == false {
-                return
-            }
-            
-            if let possibleItem, possibleItem.isCancelled {
-                return
-            }
-
-            self.latestSubwindowPoint = pos
-            subWindow?.close()
-            subWindow = nil
-            
-            let w = ModernMenuBarExtraWindow(title: "Window", windowManager: self, content: { AnyView(view) })
-            w.delegate = self
-            w.isSecondary = true
-            w.isReleasedWhenClosed = false
-            
-            if !(possibleItem?.isCancelled ?? false) {
-                subWindow = w
-                
-                self.currentHoverId = id
-                self.subwindowID = UUID()
-                //print("SWH 2 \(id)")
-                hoverManager?.setWindowHovering(true, id: id)
-                subWindow?.orderFrontRegardless()
-            }
-        }
+            let cursorPosition = NSEvent.mouseLocation
+            self.latestCursorPosition = cursorPosition
+            mainWindow?.mouseMoved(to: cursorPosition)
         
-        possibleItem = item
-        self.openSubwindowWorkItem = item
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: item)
-    } */
-    
+    }
     
     
     public func windowWillClose(_ notification: Notification) {}
@@ -285,7 +247,7 @@ private extension FluidMenuBarExtraWindowManager {
         }
 
         mouseMonitor = LocalEventMonitor(mask: [.mouseMoved, .mouseEntered, .mouseExited]) { event in
-           // self.mouseMoved(event: event)
+            self.mouseMoved(event: event)
             return event
         }
 
