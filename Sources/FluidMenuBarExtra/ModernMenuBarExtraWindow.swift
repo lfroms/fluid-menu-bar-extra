@@ -234,7 +234,7 @@ extension ModernMenuBarExtraWindow {
             subWindow = nil
             
             let w = ModernMenuBarExtraWindow(title: "Window", content: { AnyView(view) })
-            w.isSecondary = true
+          //  w.isSecondary = true
             w.isReleasedWhenClosed = false
             
             w.delegate = self
@@ -338,7 +338,7 @@ extension ModernMenuBarExtraWindow {
     func mouseMoved(to cursorPosition: NSPoint) {
         
         if let window = self.subWindow {
-                        subwindowHovering = window.isMouseInside(mouseLocation: cursorPosition, tolerance: 3)
+                subwindowHovering = window.isCursorInSelfOrSubwindows(cursorPosition: cursorPosition)
                         
                         if subwindowHovering {
                             //print("SWH 3")
@@ -353,6 +353,19 @@ extension ModernMenuBarExtraWindow {
                     }
         
         subWindow?.mouseMoved(to: cursorPosition)
+    }
+    
+    func isCursorInSelfOrSubwindows(cursorPosition: NSPoint) -> Bool {
+        
+        if let subWindow {
+            if subWindow.isCursorInSelfOrSubwindows(cursorPosition: cursorPosition) {
+                return true
+            }
+        }
+        
+      
+        return self.isMouseInside(mouseLocation: cursorPosition, tolerance: 0)
+        
     }
     
 }
