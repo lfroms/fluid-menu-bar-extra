@@ -35,6 +35,8 @@ public class ModernMenuBarExtraWindow: NSPanel, NSWindowDelegate, ObservableObje
     private var latestSubwindowPoint: CGPoint?
     private var subwindowHovering = false
     
+    @Published var mouseHovering = false
+    
     var windowManager: FluidMenuBarExtraWindowManager?
     
     
@@ -49,8 +51,8 @@ public class ModernMenuBarExtraWindow: NSPanel, NSWindowDelegate, ObservableObje
     var isSecondary = false {
         didSet {
             self.level = isSecondary ? .popUpMenu : .normal
-            self.isFloatingPanel = isSecondary
-            self.hidesOnDeactivate = isSecondary
+           // self.isFloatingPanel = isSecondary
+            //self.hidesOnDeactivate = isSecondary
         }
     }
     
@@ -249,6 +251,7 @@ extension ModernMenuBarExtraWindow {
                 //print("SWH 2 \(id)")
                 hoverManager?.setWindowHovering(true, id: id)
                 subWindow?.orderFrontRegardless()
+                //subWindow?.makeKeyAndOrderFront(nil)
             }
         }
         
@@ -336,12 +339,13 @@ extension ModernMenuBarExtraWindow {
     
    
     func mouseMoved(to cursorPosition: NSPoint) {
+     
         
         if let window = self.subWindow {
                 subwindowHovering = window.isCursorInSelfOrSubwindows(cursorPosition: cursorPosition)
                         
                         if subwindowHovering {
-                            //print("SWH 3")
+                           // print("SWH 3")
                             hoverManager!.setWindowHovering(true, id: currentHoverId)
                             closeSubwindowWorkItem?.cancel()
                         } else {
@@ -364,7 +368,19 @@ extension ModernMenuBarExtraWindow {
         }
         
       
-        return self.isMouseInside(mouseLocation: cursorPosition, tolerance: 0)
+        
+        let result = self.isMouseInside(mouseLocation: cursorPosition, tolerance: 0)
+        
+        if result {
+            if self.isKeyWindow == false {
+                self.makeKey()
+                self.makeFirstResponder(self)
+                print("Changed fr")
+            }
+            
+        }
+        
+        return result
         
     }
     

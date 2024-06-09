@@ -109,10 +109,11 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
     public func windowDidResignKey(_ notification: Notification) {
         guard let window = notification.object as? NSWindow else { return }
        
+        
             
-            dismissWindow(mainWindow)
+            //dismissWindow(mainWindow)
             mainWindowVisible = false
-            globalEventMonitor?.stop()
+           // globalEventMonitor?.stop()
         
     }
     
@@ -173,9 +174,13 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
        
         //print("Mouse moved")
             
+      
+            
             let cursorPosition = NSEvent.mouseLocation
             self.latestCursorPosition = cursorPosition
             mainWindow?.mouseMoved(to: cursorPosition)
+            
+        
         
     }
     
@@ -219,7 +224,9 @@ extension NSWindow {
     func isMouseInside(mouseLocation: NSPoint, tolerance: CGFloat) -> Bool {
         var windowFrame = self.frame
         windowFrame.size.width += tolerance
-        return windowFrame.contains(mouseLocation)
+        let result = windowFrame.contains(mouseLocation)
+        
+        return result
     }
 }
 
