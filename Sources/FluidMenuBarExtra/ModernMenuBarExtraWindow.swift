@@ -16,7 +16,7 @@ import Combine
 /// automatically adjusts its frame to match.
 public class ModernMenuBarExtraWindow: NSPanel, NSWindowDelegate, ObservableObject {
     
-    public var subWindow: ModernMenuBarExtraWindow?
+    public weak var subWindow: ModernMenuBarExtraWindow?
     
     public var currentHoverId: String?
     
@@ -32,12 +32,14 @@ public class ModernMenuBarExtraWindow: NSPanel, NSWindowDelegate, ObservableObje
     private var subwindowViews = [String:AnyView]()
     private var subwindowPositions = [String:CGPoint]()
     
-    private var latestSubwindowPoint: CGPoint?
+    public var latestSubwindowPoint: CGPoint?
     private var subwindowHovering = false
+    
+    public let isSubwindow: Bool
     
     @Published var mouseHovering = false
     
-    var windowManager: FluidMenuBarExtraWindowManager?
+    public var windowManager: FluidMenuBarExtraWindowManager?
     
     
     var resize = true {
@@ -88,9 +90,9 @@ public class ModernMenuBarExtraWindow: NSPanel, NSWindowDelegate, ObservableObje
 
     private var hostingView: NSHostingView<AnyView>!
 
-    init(contentRect: CGRect? = nil, title: String, content: @escaping () -> AnyView) {
+    init(contentRect: CGRect? = nil, title: String, isSubWindow isSub: Bool = false, content: @escaping () -> AnyView) {
         self.content = content
-        
+        self.isSubwindow = isSub
          
         super.init(
             contentRect: contentRect ?? CGRect(x: 0, y: 0, width: 100, height: 100),
@@ -98,6 +100,8 @@ public class ModernMenuBarExtraWindow: NSPanel, NSWindowDelegate, ObservableObje
             backing: .buffered,
             defer: false
         )
+        
+       
         
         self.title = title
         self.delegate = self
@@ -235,11 +239,13 @@ extension ModernMenuBarExtraWindow {
             subWindow?.close()
             subWindow = nil
             
-            let w = ModernMenuBarExtraWindow(title: "Window", content: { AnyView(view) })
+            let w = ModernMenuBarExtraWindow(title: "Window", isSubWindow: true, content: { AnyView(view) })
           //  w.isSecondary = true
-            w.isReleasedWhenClosed = false
+            w.isReleasedWhenClosed = true
             
-            w.delegate = self
+            w.delegate = self.delegate
+            
+           // w.delegate = self
             
             w.windowManager = self.windowManager
             
@@ -249,6 +255,7 @@ extension ModernMenuBarExtraWindow {
                 self.currentHoverId = id
                 self.subwindowID = UUID()
                 //print("SWH 2 \(id)")
+                self.addChildWindow(w, ordered: .above)
                 hoverManager?.setWindowHovering(true, id: id)
                 subWindow?.orderFrontRegardless()
                 //subWindow?.makeKeyAndOrderFront(nil)
@@ -270,33 +277,8 @@ extension ModernMenuBarExtraWindow {
     public func registerSubwindowButtonPosition(point: CGPoint, for id: String) {
         subwindowPositions[id] = point
     }
-    
 
-
-    func updateSubwindowPosition() {
-        guard let subWindow = subWindow else { return }
-        guard let point = latestSubwindowPoint else { return }
-            
-        let subWindowFrame = subWindow.frame
-        let mainWindowFrame = self.frame
-        
-        let adjustedPoint = CGPoint(
-            x: mainWindowFrame.minX - subWindowFrame.width + 10,
-            y: mainWindowFrame.origin.y + mainWindowFrame.height - point.y
-        )
-
-        subWindow.setFrameTopLeftPoint(adjustedPoint)
-        self.addChildWindow(subWindow, ordered: .above)
-    }
-    
-    public func windowDidResize(_ notification: Notification) {
-        guard let window = notification.object as? NSWindow else { return }
-        guard window == subWindow else { return }
-        
-        if self.frame.width < 1 { return }
-        
-        updateSubwindowPosition()
-    }
+   
     
     override public func close() {
         
@@ -305,6 +287,8 @@ extension ModernMenuBarExtraWindow {
         super.close()
         
     }
+    
+ 
 
     public func closeSubwindow(notify: Bool = true) {
         
@@ -349,17 +333,31 @@ extension ModernMenuBarExtraWindow {
                             hoverManager!.setWindowHovering(true, id: currentHoverId)
                             closeSubwindowWorkItem?.cancel()
                         } else {
-                            if !self.isMouseInside(mouseLocation: cursorPosition, tolerance: 30) {
+                           /* if !self.isMouseInside(mouseLocation: cursorPosition, tolerance: 30) {
                                 
                                 closeSubwindow()
-                            }
+                            }*/
                         }
                     }
         
         subWindow?.mouseMoved(to: cursorPosition)
     }
     
+    func isWindowOrSubwindowKey() -> Bool {
+        
+        if let subWindow {
+            if subWindow.isWindowOrSubwindowKey() {
+                return true
+            }
+        }
+        
+        return self.isKeyWindow && self.isVisible
+        
+    }
+    
     func isCursorInSelfOrSubwindows(cursorPosition: NSPoint) -> Bool {
+        
+        
         
         if let subWindow {
             if subWindow.isCursorInSelfOrSubwindows(cursorPosition: cursorPosition) {
@@ -375,13 +373,21 @@ extension ModernMenuBarExtraWindow {
             if self.isKeyWindow == false {
                 self.makeKey()
                 self.makeFirstResponder(self)
-                print("Changed fr")
+                //print("Changed fr")
             }
             
         }
         
         return result
         
+    }
+    
+    func getAllWindows() -> [ModernMenuBarExtraWindow] {
+            var result: [ModernMenuBarExtraWindow] = [self]
+            if let subwindow = self.subWindow {
+                result.append(contentsOf: subwindow.getAllWindows())
+            }
+            return result
     }
     
 }
