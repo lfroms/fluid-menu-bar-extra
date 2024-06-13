@@ -39,8 +39,8 @@ public class MouseSpeedCalculator {
             // Remove speeds older than 1 second from the cache
             speedCache = speedCache.filter { currentTime - $0.timestamp <= 0.5 }
             
-            print("Latest mouse speed: \(latestMouseSpeed)")
-            print("Speed cache: \(speedCache)")
+            //print("Latest mouse speed: \(latestMouseSpeed)")
+            //print("Speed cache: \(speedCache)")
         }
         
         // Update last location and time

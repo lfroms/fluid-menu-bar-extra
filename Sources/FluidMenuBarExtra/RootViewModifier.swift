@@ -22,12 +22,16 @@ struct RootViewModifier: ViewModifier {
     @Environment(\.updateSize) private var updateSize
 
     @State private var scenePhase: ScenePhase = .background
+    @State private var iSKey: Bool = false
 
+    @ObservedObject var keyObserver = WindowKeyStateObserver()
+    
     let windowTitle: String
 
     func body(content: Content) -> some View {
         content
             .environment(\.scenePhase, scenePhase)
+            .environmentObject(keyObserver)
             .edgesIgnoringSafeArea(.all)
             .background(
                 GeometryReader { geometry in
@@ -47,8 +51,17 @@ struct RootViewModifier: ViewModifier {
                     return
                 }
 
+                keyObserver.isKey = true
                 scenePhase = .active
             }
+            .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { notification in
+                guard let window = notification.object as? NSWindow, window.title == windowTitle, scenePhase != .active else {
+                    return
+                }
+
+                keyObserver.isKey = false
+            }
+            
             .onReceive(NotificationCenter.default.publisher(for: NSWindow.didResignKeyNotification)) { notification in
                 guard let window = notification.object as? NSWindow, window.title == windowTitle, scenePhase != .background else {
                     return
@@ -57,4 +70,11 @@ struct RootViewModifier: ViewModifier {
                 scenePhase = .background
             }
     }
+}
+
+
+class WindowKeyStateObserver: ObservableObject {
+    
+    @Published var isKey: Bool = false
+    
 }
