@@ -65,7 +65,7 @@ public class WindowSelectionManager: ObservableObject, SubWindowSelectionManager
     public func setMenuItemHovering(id: String?, hovering: Bool) {
         
         self.latestMenuHoverId = id
-        print("Latest menu hover: \(id)")
+        //print("Latest menu hover: \(id)")
         selectID(id)
         
     }

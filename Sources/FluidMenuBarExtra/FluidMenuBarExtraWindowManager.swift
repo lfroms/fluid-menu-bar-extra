@@ -113,12 +113,12 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
     public func windowDidResignKey(_ notification: Notification) {
        // guard let window = notification.object as? NSWindow else { return }
        
-        print("Resign key")
+       // print("Resign key")
         
         DispatchQueue.main.async { [self] in
             
             if !mainWindow.isWindowOrSubwindowKey() {
-                print("Found key window")
+               // print("Found key window")
                 dismissWindows()
                 mainWindowVisible = false
                 globalEventMonitor?.stop()
@@ -216,10 +216,10 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
     }
     
     public func windowDidResize(_ notification: Notification) {
-        print("Window did resize")
+        //print("Window did resize")
         guard let window = notification.object as? ModernMenuBarExtraWindow else { return }
         guard window.isSubwindow else { return }
-        print("Window did Resized window was subwindow")
+        //print("Window did Resized window was subwindow")
         
         if window.frame.width < 1 { return }
         
