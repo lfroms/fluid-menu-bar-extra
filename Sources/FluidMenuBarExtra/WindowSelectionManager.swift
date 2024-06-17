@@ -11,9 +11,9 @@ import SwiftUI
 
 public class WindowSelectionManager: ObservableObject, SubWindowSelectionManager {
     
-    @Published public var selectedItemID: String? {
+    @Published public var menuSelection: String? {
         didSet {
-            handleSelectionChange(oldValue: oldValue, newValue: selectedItemID)
+            handleSelectionChange(oldValue: oldValue, newValue: menuSelection)
         }
     }
     
@@ -38,7 +38,7 @@ public class WindowSelectionManager: ObservableObject, SubWindowSelectionManager
     var lastSelectWasByKey = false
     var latestScroll: Date?
     
-    var latestActualHoverId: String?
+    public var latestMenuHoverId: String?
     
     public init(itemsProvider: MenuSelectableItemsProvider) {
         self.itemsProvider = itemsProvider
@@ -51,10 +51,10 @@ public class WindowSelectionManager: ObservableObject, SubWindowSelectionManager
         
         let item = DispatchWorkItem { [self] in
             if hovering {
-                selectIDFromHover(id)
-            } else if selectedItemID == id {
-                selectedItemID = nil
-                selectIDFromHover(nil)
+                selectID(id)
+            } else if menuSelection == id {
+                menuSelection = nil
+                selectID(latestMenuHoverId)
             }
         }
         
@@ -62,28 +62,28 @@ public class WindowSelectionManager: ObservableObject, SubWindowSelectionManager
         DispatchQueue.main.async(execute: item)
     }
     
-    public func selectIDFromHover(_ idToSelect: String?) {
-        guard idToSelect != selectedItemID else { return }
+    public func setMenuItemHovering(id: String?, hovering: Bool) {
+        
+        self.latestMenuHoverId = id
+        print("Latest menu hover: \(id)")
+        selectID(id)
+        
+    }
+    
+    private func selectID(_ idToSelect: String?) {
+        guard idToSelect != menuSelection else { return }
         
         selectFromHoverWorkItem?.cancel()
         
         let item = DispatchWorkItem { [self] in
             
-            if let mouseTracker = submenuManager?.windowManager?.speedCalculator {
-                
-                if mouseTracker.containsSpeed(over: 500) {
-                    print("Ignoring")
-                    return
-                }
-                
-            }
-            
+          
             latestHoverDate = Date()
             if let latestKeyDate = latestKeyDate, Date().timeIntervalSince(latestKeyDate) < 0.5 { return }
             
             lastSelectWasByKey = false
-            if selectedItemID != idToSelect {
-                selectedItemID = idToSelect
+            if menuSelection != idToSelect {
+                menuSelection = idToSelect
             }
         }
         
@@ -92,8 +92,8 @@ public class WindowSelectionManager: ObservableObject, SubWindowSelectionManager
                 return 1
             } else {
                 
-                let prev = selectedItemID
-                return prev == nil ? 0 : 0.15
+                let prev = menuSelection
+                return prev == nil ? 0 : 0
             }
         }()
         
@@ -103,24 +103,22 @@ public class WindowSelectionManager: ObservableObject, SubWindowSelectionManager
     
     func resetHover() {
         latestKeyDate = nil
-        if let latestActualHoverId {
-            selectedItemID = latestActualHoverId
-        }
+        
     }
     
     public func clickItem() {
-        clickID = selectedItemID
+        clickID = menuSelection
     }
     
     public func selectNextItem() {
-        guard let currentID = selectedItemID else {
-            selectedItemID = latestItems.first
+        guard let currentID = menuSelection else {
+            menuSelection = latestItems.first
             return
         }
         
         let ids = latestItems
         if let currentIndex = ids.firstIndex(of: currentID), currentIndex + 1 < ids.count {
-            selectedItemID = ids[currentIndex + 1]
+            menuSelection = ids[currentIndex + 1]
         }
         
         lastSelectWasByKey = true
@@ -128,14 +126,14 @@ public class WindowSelectionManager: ObservableObject, SubWindowSelectionManager
     }
     
    public func selectPreviousItem() {
-        guard let currentID = selectedItemID else {
-            selectedItemID = latestItems.last
+        guard let currentID = menuSelection else {
+            menuSelection = latestItems.last
             return
         }
         
         let ids = latestItems
         if let currentIndex = ids.firstIndex(of: currentID), currentIndex > 0 {
-            selectedItemID = ids[currentIndex - 1]
+            menuSelection = ids[currentIndex - 1]
         }
         
         lastSelectWasByKey = true

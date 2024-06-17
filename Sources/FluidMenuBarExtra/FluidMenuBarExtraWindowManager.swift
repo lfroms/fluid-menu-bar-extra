@@ -105,6 +105,9 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
             mouseMonitor?.start()
             setButtonHighlighted(to: true)
         }
+        
+        
+       
     }
     
     public func windowDidResignKey(_ notification: Notification) {
@@ -156,7 +159,7 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
     
     private func dismissWindows() {
      
-        let all = mainWindow.getAllWindows()
+        let all = mainWindow.getSelfAndSubwindows()
         
         for window in all {
             dismissWindow(window: window)
@@ -222,16 +225,26 @@ public class FluidMenuBarExtraWindowManager: NSObject, NSWindowDelegate, Observa
         
         updateSubwindowPosition(window: window)
     }
+    
+    let queue = DispatchQueue(label: "MouseMovedQueue")
    
     func mouseMoved(event: NSEvent) {
        
         //print("Mouse moved")
+        
+        let cursorPosition = NSEvent.mouseLocation
             
-        speedCalculator.updateSpeed(with: event)
+       
+        
+       // speedCalculator.updateSpeed(with: event)
             
-            let cursorPosition = NSEvent.mouseLocation
+            
+        queue.sync {
+            
             self.latestCursorPosition = cursorPosition
-            mainWindow?.mouseMoved(to: cursorPosition)
+            self.mainWindow?.mouseMoved(to: cursorPosition)
+            
+        }
             
         
         
@@ -286,6 +299,8 @@ extension NSWindow {
 
 public protocol SubWindowSelectionManager {
     func setWindowHovering(_ hovering: Bool, id: String?)
+    
+    var latestMenuHoverId: String? { get set }
 }
 
 // Helper methods to setup event monitors
