@@ -16,13 +16,21 @@ import SwiftUI
 final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
     private let content: () -> Content
 
-    private lazy var visualEffectView: NSVisualEffectView = {
-        let view = NSVisualEffectView()
-        view.blendingMode = .behindWindow
-        view.state = .active
-        view.material = .popover
-        view.translatesAutoresizingMaskIntoConstraints = true
-        return view
+    private lazy var visualEffectView: NSView = {
+        if #available(macOS 26.0, *) {
+            let view = NSGlassEffectView()
+            view.style = .regular
+            view.cornerRadius = 16
+            view.translatesAutoresizingMaskIntoConstraints = true
+            return view
+        } else {
+            let view = NSVisualEffectView()
+            view.blendingMode = .behindWindow
+            view.state = .active
+            view.material = .popover
+            view.translatesAutoresizingMaskIntoConstraints = true
+            return view
+        }
     }()
 
     private var rootView: some View {
@@ -62,6 +70,11 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
         isFloatingPanel = true
         level = .statusBar
         isOpaque = false
+
+        if #available(macOS 26.0, *) {
+            backgroundColor = .clear
+        }
+
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
 
