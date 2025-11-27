@@ -122,4 +122,8 @@ final class FluidMenuBarExtraWindow<Content: View>: NSPanel {
             self?.setFrame(nextFrame, display: true, animate: true)
         }
     }
+
+    override func cancelOperation(_ sender: Any?) {
+        resignKey()
+    }
 }
